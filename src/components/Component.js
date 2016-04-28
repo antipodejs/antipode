@@ -33,7 +33,7 @@ class Component extends Atom {
 		
 		this.init();
 		return this;
-	};
+	}
 
 	/**
 	* @private
@@ -64,7 +64,7 @@ class Component extends Atom {
 			c.element = e;
 			c.render();
 		}
-	};
+	}
 
 	/**
 	* @public
@@ -72,7 +72,7 @@ class Component extends Atom {
 	getComponents () {
 
 	   return _.toArray(this.$);
-	};
+	}
 
 	/**
 	* @public
@@ -89,7 +89,7 @@ class Component extends Atom {
 		if (c && buble !== true) {
 			c.parent && c.parent.$emit(event, data);
 		}
-	};
+	}
 
 	/**
 	* @private
@@ -131,7 +131,7 @@ class Component extends Atom {
 				return a.join('')
 			}.bind(this)
 		}
-	};
+	}
 
 	/**
 	* @private
@@ -175,7 +175,7 @@ class Component extends Atom {
 		if (s < t.length - 1) {
 			a.push(t.slice(s, t.length - 1)); 
 		}
-	};
+	}
 
 	/**
 	* @public
@@ -225,7 +225,7 @@ class Component extends Atom {
 		}
 
 		return this;
-	};
+	}
 
 	/**
 	* @private
@@ -237,7 +237,7 @@ class Component extends Atom {
 				this.insertComponent(c);
 			}.bind(this))
 		};
-	};
+	}
 
 	/**
 	* @private
@@ -262,7 +262,7 @@ class Component extends Atom {
 				return i < ar.length - 1;
 			}
 		}
-	};
+	}
 
 	/**
 	* @private
@@ -290,7 +290,7 @@ class Component extends Atom {
 			
 		}.bind(this)
 	}
-};
+}
 
 
 window.antipode = 

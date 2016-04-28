@@ -17,7 +17,6 @@ class Atom {
 	checkObservers (d, is, was) {
 		let o;
 		if (o = this._observers[d]) {
-			console.log('set ', d, this._observers);
 			o.forEach(function(handler) {
 				handler(was, is);
 			})
