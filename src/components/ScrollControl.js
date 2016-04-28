@@ -21,12 +21,13 @@ class Scroll {
             min = 0;
 
         // Temporary !!! Only for test; // TODO: it'll need be removing
-        this.max = 500*40 - 400;
+        this.max = 500 * 40 - 400;
             
         /**
         * @private
         */
 		const ypos = (e) => {
+
             // touch event
             if (e.targetTouches && (e.targetTouches.length >= 1)) {
                 return e.targetTouches[0].clientY;
@@ -40,6 +41,7 @@ class Scroll {
         * @private
         */
         const requestAnimationFrame = (() => {
+
         	const w = window;
             return requestAnimationFrame ||
                 w.webkitRequestAnimationFrame ||
@@ -50,21 +52,23 @@ class Scroll {
 	                w.setTimeout(callback, 16.7);
 	            };
         	}
-        )();
+        )()
 
         /**
         * @private
         */
         const _scroll = ((y) => {
+
    		    let prev = offset;
             offset = (y > this.max) ? this.max : (y < min) ? min : y; 
             (prev != offset) && this.scroll(offset);
-        }).bind(this);
+        }).bind(this)
 
         /**
         * @private
         */
         const track = () => {
+
             let now, elapsed, delta, v; 
             now = Date.now();
             elapsed = now - timestamp;
@@ -79,6 +83,7 @@ class Scroll {
         * @private
         */
         const autoScroll = () => {
+
             let elapsed, delta;
             if (amplitude) {
                 elapsed = Date.now() - timestamp;
@@ -87,9 +92,8 @@ class Scroll {
                     _scroll(target + delta);
                     delta_prev = delta;
                     requestAnimationFrame(autoScroll);
-                    //scrollBarFideIn();
                 } else {
-                   scrollBarFideOut(); //
+                   scrollBarFideOut(); 
                 }
             }
         }
@@ -98,6 +102,7 @@ class Scroll {
         * @private
         */
         const tap = (e) => {
+
             pressed = true;
             reference = ypos(e);
             velocity = amplitude = 0;
@@ -117,6 +122,7 @@ class Scroll {
         * @private
         */
         const drag = (e) => {
+
             let y, delta;
             if (pressed) {
                 y = ypos(e);
@@ -146,7 +152,6 @@ class Scroll {
                 amplitude = 2.9 * velocity;
                 target = Math.round(offset + amplitude);
                 timestamp = Date.now();
-                //scrollBarFideIn();
                 requestAnimationFrame(autoScroll);
             } else {
                 scrollBarFideOut();
@@ -154,12 +159,13 @@ class Scroll {
             e.preventDefault();
             e.stopPropagation();
             return false;
-        };
+        }
 
         /**
         * @private
         */
         const scrollEndOfOutSide = (e) => {
+
             release(e);  
             document.querySelector('html')
                 .removeEventListener('mouseup', scrollEndOfOutSide, true);
@@ -169,6 +175,7 @@ class Scroll {
         * @private
         */
         const onWheel = (e) => {
+
             e = e || window.event;
             tap(e);
             velocity = e.deltaY * 4; 
@@ -176,21 +183,23 @@ class Scroll {
 
             e.preventDefault();
             e.stopPropagation();
-        };
+        }
 
         /**
         * @private
         */
         const scrollBarFideIn = (() => {
+
         	this.scrollBarFideIn();
-        }).bind(this);
+        }).bind(this)
 
         /**
         * @private
         */
         const scrollBarFideOut = (() => {
+
         	this.scrollBarFideOut();
-        }).bind(this);
+        }).bind(this)
 
         // touch event
         if (typeof window.ontouchstart !== 'undefined') {
@@ -210,34 +219,36 @@ class Scroll {
             }
             return true;
         });
-	};
+	}
 
     /**
     * @private
     */
-	scroll () {};
+	scroll () {}
 
     /**
     * @private
     */
-	scrollBarFideIn () {};
+	scrollBarFideIn () {}
 
     /**
     * @private
     */
-	scrollBarFideOut () {};
+	scrollBarFideOut () {}
 
     /**
     * @private
     */
 	getMaxHeight() {
+
 		return this.max;
-	};
+	}
 
     /**
     * @private
     */
     setMaxHeight(m) {
+
         this.max = m;
     }
 
