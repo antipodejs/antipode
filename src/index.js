@@ -6,6 +6,9 @@ import itemTreeStateStorage from './components/itemTreeStateStorage';
 import Model from './components/Model';
 import ScrollControl from './components/ScrollControl';
 import xhr from './components/xhr';
+import platform from './components/platform';
+import dom from './components/dom';
+
 
 export default {
 	Atom,
@@ -15,5 +18,7 @@ export default {
 	itemTreeStateStorage,
 	Model,
 	ScrollControl,
-	xhr
+	xhr,
+	platform,
+	dom
 };

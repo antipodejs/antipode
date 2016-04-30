@@ -252,6 +252,10 @@ class Component extends Atom {
 		return this;
 	}
 
+	hasNode () {
+		return !!this.$element;
+	}
+
 	/**
 	* @private
 	*/
