@@ -7,6 +7,7 @@ import Atom from './Atom';
 */
 const _events = ["click", "mousedown", "mouseup", "mousemove"];
 const _events_RE = new RegExp('^on\-(' + _events.join('|') + ')');
+const args = function () {return arguments};
 
 let _Component_serial_number = 0;
 
@@ -54,11 +55,18 @@ class Component extends Atom {
 		c.parent = this;
 
 		if (this.$parent) {
-			var e = document.createElement('c');
+			var e = document.createElement('c'),
+			    componentSection = this.$parent.querySelector('components');
+
+			if (!componentSection) {
+				componentSection = this.$parent.children[0].appendChild(
+					document.createElement('components')
+				);
+			}
 
 			target 
 				? target.appendChild(e) 
-				: this.$parent.querySelector('components').appendChild(e);
+				: componentSection.appendChild(e);
 
 			c.init();
 			c.element = e;
@@ -197,30 +205,47 @@ class Component extends Atom {
 			e = document.querySelector(this.directive);
 		}
 
+	    const  readAttrs = (node) => {
+
+			var a, i, cnt,
+				on_event, handler;
+
+			if (node && (node = node.children).length) {
+
+				_.toArray(node).forEach((n) => {
+					readAttrs(n);
+					a = n.attributes;
+
+					for (i = 0, cnt = a.length; i < cnt; ++i) {
+
+						if (on_event = a[i].localName.match(_events_RE)) {
+							handler = a[i].value;
+
+							var evnt = on_event[1],
+								hdr = handler.match(/^[^\(\s]*/)[0],
+								params = handler.slice(hdr.length);
+
+							if (this.on && this.on[hdr]) {
+								n.addEventListener(
+									evnt,
+									() => {
+										this.on[hdr].apply(this, eval("args" + params))
+									},
+									false
+								);
+							}
+						};
+					}
+				});
+			}
+		}
+
 		if (e) {
 			inner = this._a.join('');
 			e.innerHTML = inner;
 			this.$element = e.children[0];
 			e.setAttribute("ap-component", this._globalUID);
-
-			var node = e, 
-				a, i, cnt, 
-				on_event, handler;
-
-			if (node = node.children) {
-				_.toArray(node).forEach(function(n) {
-					a = n.attributes;
-					
-					for (i = 0, cnt = a.length; i < cnt; ++i) {
-						if (on_event = a[i].localName.match(_events_RE)) {
-							handler = a[i].value;
-							if (this.on && this.on[handler]) {
-								n.addEventListener(on_event[1], this.on[handler], false);
-							}
-						};
-					}	
-				}.bind(this));
-			}
+			readAttrs(e);
 			this.rendered();
 		}
 
