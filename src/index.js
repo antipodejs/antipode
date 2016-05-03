@@ -8,6 +8,7 @@ import ScrollControl from './components/ScrollControl';
 import xhr from './components/xhr';
 import platform from './components/platform';
 import dom from './components/dom';
+import iList from './components/iList';
 
 
 export default {
@@ -20,5 +21,6 @@ export default {
 	ScrollControl,
 	xhr,
 	platform,
-	dom
+	dom,
+	iList
 };

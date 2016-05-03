@@ -22,6 +22,10 @@ class Scroll {
 
         // Temporary !!! Only for test; // TODO: it'll need be removing
         this.max = 500 * 40 - 400;
+
+        this.setScroll = (s) => {
+            _scroll(s);
+        }
             
         /**
         * @private

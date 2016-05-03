@@ -5,7 +5,7 @@ import Atom from './Atom';
 * Contains the declaration for the {@link Component} class.
 * @module Component
 */
-const _events = ["click", "mousedown", "mouseup", "mousemove"];
+const _events = ["click", "mousedown", "mouseup", "mousemove", "mouseover", "mouseout"];
 const _events_RE = new RegExp('^on\-(' + _events.join('|') + ')');
 const args = function () {return arguments};
 
@@ -226,11 +226,17 @@ class Component extends Atom {
 								params = handler.slice(hdr.length);
 
 							if (this.on && this.on[hdr]) {
+
 								n.addEventListener(
+
 									evnt,
-									() => {
-										this.on[hdr].apply(this, eval("args" + params))
-									},
+
+									((hdr, params) => {
+										return () => {
+											this.on[hdr].apply(this, eval("args" + params))
+										}
+									})(hdr, params),
+
 									false
 								);
 							}
