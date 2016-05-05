@@ -18,11 +18,11 @@ class VDRepeater extends Component {
 				data: {
 					first: 0,
 					numItems: 10,
-					lengthPx: 0,
 					spacing: 1,
 					itemHeight: 19,
 					deltaPx: 0,
-					scrollPx: 0
+					scrollPx: 0,
+					sliderWidthPx: 20
 				}
 			}, params)
 		);
@@ -36,18 +36,22 @@ class VDRepeater extends Component {
 		this.repeaterComponents = repeaterComponents;
 	}
 
-	rendered() {
+	fillComponents () {
 
-		super.rendered();
-		if (this.collection) {
-			let cnt = Math.min(this.collection.models.length, this.data.numItems - 2);
-
+		let cnt;
+		if (this.collection && this.repeaterComponents) {
+			cnt = Math.min(this.collection.models.length, this.data.numItems - 2);
 			while (cnt--) {
 				this.insertComponent(this.repeaterComponents);
 			}
-
-			this.doIt();
 		}
+		return cnt;
+	}
+
+	rendered() {
+
+		super.rendered();
+		this.fillComponents() && this.doIt();
 
 		this.slider = this.$element.querySelector('#slider');
 		this.sliderBar = this.$element.querySelector('#sliderBar');

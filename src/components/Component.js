@@ -75,6 +75,28 @@ class Component extends Atom {
 	}
 
 	/**
+	* @private
+	*/
+	removeComponent (component) {
+
+		const components = _.isArray(component)
+			? component
+			: [component];
+
+		let p;
+
+		for (let e in this.$) {
+			if (~components.indexOf(this.$[e])) {
+				p = this.$[e].$element.parentNode;
+				if (this.isComponent(p)) {
+					p.parentNode.removeChild(p);
+				}
+				delete this.$[e];
+			}
+		}
+	}
+
+	/**
 	* @public
 	*/
 	getComponents () {
@@ -260,6 +282,10 @@ class Component extends Atom {
 
 	hasNode () {
 		return !!this.$element;
+	}
+
+	isComponent (c) {
+		return !!c.getAttributeNode('ap-component');
 	}
 
 	/**
