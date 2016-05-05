@@ -1,0 +1,44 @@
+.infinitelist {
+	position: relative;
+	height: 200px;
+	width: 180px;
+	border: 1px gray solid;
+	display: inline-block;
+	background-color: #BDC0C7;
+	padding-left: 10px;
+	overflow: hidden;
+	cursor: default;
+}
+
+.infinitelist > #sliderBar {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	height: 100%;
+	width: 5px;
+	background-color: #707676;
+}
+
+.infinitelist > #sliderBar > #startArrow, #endArrow {
+	position: ablolute;
+	background: #646A6A;
+	top: 0;
+	height: 20px;
+	width: 5px;
+	cursor: default;
+	display: none;
+}
+
+.infinitelist > #sliderBar > #endArrow {
+	bottom: 0;  
+}
+
+.infinitelist > #sliderBar > #slider {
+	position: absolute;
+	top: 0;
+	right: 0;
+	/*height: 20px;*/
+	width: 5px;
+	background-color: #BABBBB;
+}
