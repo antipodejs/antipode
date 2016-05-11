@@ -73,16 +73,25 @@ import platform from './platform';
 	};
 
 	const addClass = (node, s) => {
-		if (node && !this.hasClass(node, s)) {
+		if (node && !hasClass(node, s)) {
 			let ss = node.className;
 			node.className = (ss + (ss ? ' ' : '') + s);
 		}
 	};
 
 	const removeClass = (node, s) => {
-		if (node && this.hasClass(node, s)) {
+		if (node && hasClass(node, s)) {
 			let ss = node.className;
 			node.className = (' ' + ss + ' ').replace(' ' + s + ' ', ' ').slice(1, -1);
+		}
+	};
+
+	const addRemoveClass = (node, s, need) => {
+		let has = hasClass(node, s);
+		if (need) {
+			!has && addClass(node, s);
+		} else {
+			has && removeClass(node, s);
 		}
 	};
 
@@ -169,6 +178,7 @@ import platform from './platform';
 		getComputedStyleValue,
 		hasClass,
 		addClass,
+		addRemoveClass,
 		removeClass,
 		setStyle,
 		getStyle

@@ -9,7 +9,7 @@ class iList extends VDataRepeater {
 
 		super(_.merge({
 			template:`
-				<div class="infinitelist" on-click="selectItem">
+				<div class="infinitelist" on-click="selectItem(event)">
 		  			<components></components>
 						<div id="sliderBar" on-mouseover="mover(event)"
 										on-mouseout="mout(event)"
@@ -22,14 +22,36 @@ class iList extends VDataRepeater {
 
 			sliderTop: 0,
 			unVisibleItems: 3,
+			selected: {},
 
 			on: {
 
+				"selectItem": (e) => {
+
+					let item = antipode.in(e.srcElement), id;
+					if (item.name == 'item') {
+						id = item.get('model.id');
+
+						console.log('item, id, this.Selector.get(id) = ', item, item.get(), this.Selector.get(id))
+						if (this.Selector.get(id)) {
+							this.Selector.set(id, false);
+							dom.removeClass(item.$element, this.Selector.selectedClass);
+						} else {
+							this.Selector.set(id, true);
+							dom.addClass(item.$element, this.Selector.selectedClass);
+
+						}
+					}
+
+				},
+
 				"pgShift": (dir) => {
+
 					dir == 'Up' ? this.pgUp() : this.pgDown();
 				},
 
 				"mout": (e) => {
+
 					dom.setStyle(this.startArrow, {
 						display: 'none'
 					});
@@ -39,6 +61,7 @@ class iList extends VDataRepeater {
 				},
 
 				"mover": (e) => {
+
 					if (this.slider !== e.srcElement) {
 						if (Math.min(e.pageY, e.offsetY) < this.sliderTop) {
 							dom.setStyle(this.startArrow, {
@@ -75,7 +98,6 @@ class iList extends VDataRepeater {
 
 			e.preventDefault();
 		    e.stopPropagation();
-		    //return false;
 		}
 
 		const scrollEndOfOutSide = (e) => {
@@ -87,10 +109,10 @@ class iList extends VDataRepeater {
 
 		this.Scroller = new ScrollControl(this.$parent);
     	this.Scroller.scroll = this.scroll.bind(this);
-
 	}
 
 	scroll (offset) {
+
 		let f = Math.ceil(offset / (this.data.deltaPx));
 
 		this.data.scrollPx = offset;
@@ -102,6 +124,7 @@ class iList extends VDataRepeater {
 	}
 
 	reset () {
+
 		this.data.numVisibleItems = this.data.numItems - this.unVisibleItems;
 		this.data.listHeightPx = this.data.numVisibleItems * this.data.deltaPx;
 		this.data.sliderWayPx = this.data.listHeightPx - this.data.sliderWidthPx;
@@ -139,23 +162,46 @@ class iList extends VDataRepeater {
 	}
 
 	positionChildren () {
-     
+
 	    var oc = this.getComponents() || [],
 	      	i, c, p, fi, li, is;
 
 	    for (i = 0; i < oc.length; i++) {
-	      c = oc[i];
-	      p = this.getPosition(c.get('_index'));
-	      c.$element.style['transform'] = 
-				'translate3d(' + '0'/*((this.data.model.level || 0) * 25)*/ + 'px, ' + p + 'px, 0)';
+			c = oc[i];
+			if (!c.set) continue;
+			p = this.getPosition(c.get('_index2'));
+			c.$element.style['transform'] = 'translate3d(0, ' + p + 'px, 0)';
 	    }
 	}
 
 	getPosition (index, scroll) {
-	    return (index * this.data.deltaPx) - Math.round(this.data.scrollPx);
+
+	    return (index * this.data.deltaPx) - this.data.scrollPx;
+	}
+
+	setItems () {
+
+		let oc = this.orderedChildren,
+			c = this.getComponents(),
+			comps = c.length,
+			i = 0, p,
+			cnt = oc.length;
+
+		for (; i < cnt; ++i) {
+			if (oc[i].n > -2 && oc[i].n < comps - 1) {
+				p = (oc[i].index * this.data.deltaPx) - Math.round(this.data.scrollPx);
+				c[i].set('_index2', oc[i].index);
+				c[i].set('model', oc[i].model);
+
+				c[i].$element.innerText = oc[i].index + ') ' + oc[i].model.name;
+				c[i].$element.style['transform'] = 'translate3d(' + '0,' + p + 'px,0)';
+				dom.addRemoveClass(c[i].$element, this.Selector.selectedClass, oc[i].selected);
+			}
+		}
 	}
 
 	calculatePgUpDownArrows () {
+
 		dom.setStyle(this.startArrow, {
 			height: this.sliderTop + 'px'
 		});
@@ -166,13 +212,22 @@ class iList extends VDataRepeater {
 	}
 
 	pgUp () {
+
 		this.Scroller.setScroll(this.data.scrollPx - (this.data.numVisibleItems - 1) * this.data.deltaPx);
 		this.calculatePgUpDownArrows();
 	}
 
 	pgDown () {
+
 		this.Scroller.setScroll(this.data.scrollPx + (this.data.numVisibleItems - 1) * this.data.deltaPx);
 		this.calculatePgUpDownArrows();
+	}
+
+	gotoRecord (rec) {
+
+		let scroll = this.data.deltaPx * rec;
+		this.Scroller.setScroll(scroll);
+		this.scroll (scroll);
 	}
 
 };

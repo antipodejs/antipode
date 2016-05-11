@@ -42,3 +42,7 @@
 	width: 5px;
 	background-color: #BABBBB;
 }
+
+.infinitelist .selected {
+	background-color: #689099 !important;
+}

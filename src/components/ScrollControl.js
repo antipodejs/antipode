@@ -26,7 +26,7 @@ class Scroll {
         this.setScroll = (s) => {
             _scroll(s);
         }
-            
+
         /**
         * @private
         */
@@ -131,7 +131,7 @@ class Scroll {
             if (pressed) {
                 y = ypos(e);
                 delta = reference - y;
-                if (delta > 2 || delta < -2) {
+                if (delta > 0.1 || delta < -0.1) {
                     reference = y;
                     _scroll(offset + delta);
                 }

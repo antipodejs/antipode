@@ -215,7 +215,10 @@ class Component extends Atom {
 		let inner, e;
 
 		this._i.forEach(function(item) {
+			//console.log('item.pattern, this.get(item.pattern) = ', item.pattern,';;;', this.get(item.pattern));
 			this._a[item.index] = this.get(item.pattern);
+			//this._a[item.index] = (function() {return eval(item.pattern)}).apply(this);
+			//console.log('this._a[item.index] = ', this._a[item.index]);
 		}.bind(this));
 		
 		if (this.element) {
