@@ -90,7 +90,10 @@ class Collection extends Atom {
 	*/
 	cut (index, counts) {
 
-		let removed = this.models.splice(index, counts);
+		let removed = typeof(counts) == "undefined"
+			? this.models.splice(index)
+			: this.models.splice(index, counts);
+
 		this.set('length', this.models.length);
 		return removed;
 	}

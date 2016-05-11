@@ -17,16 +17,16 @@ class Scroll {
             pressed = false,
             delta_prev = 0,
             offset = 0,
-            max = 500, 
+            max = 0,
             min = 0;
 
         // Temporary !!! Only for test; // TODO: it'll need be removing
-        this.max = 500 * 40 - 400;
+        //this.max = 500 * 40 - 400;
 
         this.setScroll = (s) => {
             _scroll(s);
         }
-            
+
         /**
         * @private
         */
@@ -47,7 +47,7 @@ class Scroll {
         const requestAnimationFrame = (() => {
 
         	const w = window;
-            return requestAnimationFrame ||
+            return w.requestAnimationFrame ||
                 w.webkitRequestAnimationFrame ||
             	w.mozRequestAnimationFrame ||
 	            w.oRequestAnimationFrame ||
@@ -131,7 +131,7 @@ class Scroll {
             if (pressed) {
                 y = ypos(e);
                 delta = reference - y;
-                if (delta > 2 || delta < -2) {
+                if (delta > 0.1 || delta < -0.1) {
                     reference = y;
                     _scroll(offset + delta);
                 }
@@ -153,7 +153,7 @@ class Scroll {
             }
             clearInterval(ticker);
             if (velocity > 1 || velocity < -1) {
-                amplitude = 2.9 * velocity;
+                amplitude = 0.9 * velocity;
                 target = Math.round(offset + amplitude);
                 timestamp = Date.now();
                 requestAnimationFrame(autoScroll);

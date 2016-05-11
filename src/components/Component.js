@@ -75,6 +75,28 @@ class Component extends Atom {
 	}
 
 	/**
+	* @private
+	*/
+	removeComponent (component) {
+
+		const components = _.isArray(component)
+			? component
+			: [component];
+
+		let p;
+
+		for (let e in this.$) {
+			if (~components.indexOf(this.$[e])) {
+				p = this.$[e].$element.parentNode;
+				if (this.isComponent(p)) {
+					p.parentNode.removeChild(p);
+				}
+				delete this.$[e];
+			}
+		}
+	}
+
+	/**
 	* @public
 	*/
 	getComponents () {
@@ -193,7 +215,10 @@ class Component extends Atom {
 		let inner, e;
 
 		this._i.forEach(function(item) {
+			//console.log('item.pattern, this.get(item.pattern) = ', item.pattern,';;;', this.get(item.pattern));
 			this._a[item.index] = this.get(item.pattern);
+			//this._a[item.index] = (function() {return eval(item.pattern)}).apply(this);
+			//console.log('this._a[item.index] = ', this._a[item.index]);
 		}.bind(this));
 		
 		if (this.element) {
@@ -260,6 +285,10 @@ class Component extends Atom {
 
 	hasNode () {
 		return !!this.$element;
+	}
+
+	isComponent (c) {
+		return !!c.getAttributeNode('ap-component');
 	}
 
 	/**
