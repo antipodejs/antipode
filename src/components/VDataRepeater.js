@@ -1,4 +1,5 @@
 import Component from './Component';
+import Selector from './Selector';
 
 class VDRepeater extends Component {
 
@@ -27,6 +28,11 @@ class VDRepeater extends Component {
 			}, params)
 		);
 
+		this.Selector = new Selector({
+			multi: true,
+			selectedClass: 'selected'
+		});
+
 		this.set('deltaPx', this.data.itemHeight + this.data.spacing);
 
 		this.observe('first', (was, is) => {
@@ -52,7 +58,6 @@ class VDRepeater extends Component {
 
 		super.rendered();
 		this.fillComponents() && this.doIt();
-
 		this.slider = this.$element.querySelector('#slider');
 		this.sliderBar = this.$element.querySelector('#sliderBar');
 		this.startArrow = this.$element.querySelector('#startArrow');
@@ -72,23 +77,29 @@ class VDRepeater extends Component {
 		var dd = this.collection,
 			ddl = dd.models.length,
 	        f = this.data.first,
-	        oc = this.getComponents(),
 	        st = this.data.scrollPx,
-	        i, n, set;
+	        i, n, set, id, el;
 	        
-	    var fndx = Math.floor( st / this.data.deltaPx ),
-	        fo = st > this.data.deltaPx ? fndx - 1 : fndx,
+	    var fo = Math.floor( st / this.data.deltaPx ),
+	        //fo = st > this.data.deltaPx ? fndx - 1 : fndx,
 	        lo = Math.min(ddl, fo + this.data.numItems);
 
-	    for (i = fo; i < lo; ++i) {
-	      n = i - fo - (f > 1 ? 1 : 0);
+		this.orderedChildren = [];
 
-	      if (oc[n] && oc[n].set) {
-	      	oc[n].set('title', dd.at(i)['title'] + ' ' + i);
-	      	oc[n].set('_index',  i);
-		  	oc[n].render();
-		  }
+	    for (i = fo; i < lo; ++i) {
+			n = i - fo - (f > 1 ? 1 : 0);
+			el = dd.at(i);
+
+			this.orderedChildren[this.orderedChildren.length] =
+			{
+				index: i,
+				n,
+				selected: this.Selector.get(el['id']),
+				model: _.clone(el)
+			}
 	    };
+
+	    this.setItems && this.setItems();
 	}
 }
 
