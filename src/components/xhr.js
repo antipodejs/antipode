@@ -58,4 +58,8 @@ class XHR {
 	}
 }
 
-export default new XHR();
+XHR.get = (url, cb, params) =>{
+	(new XHR(params)).getJSON(url, cb); 
+};
+
+export default XHR;
