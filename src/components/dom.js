@@ -3,7 +3,6 @@ import platform from './platform';
 	/**
 	* dom
 	*/
-
 	const global = (function() {
 		return (new Function('return this')())
 	})();
