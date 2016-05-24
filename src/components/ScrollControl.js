@@ -7,9 +7,9 @@ class Scroll {
     /**
     * @private
     */
-	constructor (view, cb) {
+    constructor (view, cb) {
 
-		let indicator, reference, velocity,
+        let indicator, reference, velocity,
             frame, timestamp, ticker,
             amplitude, target,   
             timeConstant = 175, // ms
@@ -20,9 +20,6 @@ class Scroll {
             max = 0,
             min = 0;
 
-        // Temporary !!! Only for test; // TODO: it'll need be removing
-        //this.max = 500 * 40 - 400;
-
         this.setScroll = (s) => {
             _scroll(s);
         }
@@ -30,7 +27,7 @@ class Scroll {
         /**
         * @private
         */
-		const ypos = (e) => {
+        const ypos = (e) => {
 
             // touch event
             if (e.targetTouches && (e.targetTouches.length >= 1)) {
@@ -46,16 +43,16 @@ class Scroll {
         */
         const requestAnimationFrame = (() => {
 
-        	const w = window;
+            const w = window;
             return w.requestAnimationFrame ||
                 w.webkitRequestAnimationFrame ||
-            	w.mozRequestAnimationFrame ||
-	            w.oRequestAnimationFrame ||
-	            w.msRequestAnimationFrame ||
-	            function (callback, element) {
-	                w.setTimeout(callback, 16.7);
-	            };
-        	}
+                w.mozRequestAnimationFrame ||
+                w.oRequestAnimationFrame ||
+                w.msRequestAnimationFrame ||
+                function (callback, element) {
+                    w.setTimeout(callback, 16.7);
+                };
+            }
         )()
 
         /**
@@ -63,7 +60,7 @@ class Scroll {
         */
         const _scroll = ((y) => {
 
-   		    let prev = offset;
+            let prev = offset;
             offset = (y > this.max) ? this.max : (y < min) ? min : y; 
             (prev != offset) && this.scroll(offset);
         }).bind(this)
@@ -194,7 +191,7 @@ class Scroll {
         */
         const scrollBarFideIn = (() => {
 
-        	this.scrollBarFideIn();
+            this.scrollBarFideIn();
         }).bind(this)
 
         /**
@@ -202,7 +199,7 @@ class Scroll {
         */
         const scrollBarFideOut = (() => {
 
-        	this.scrollBarFideOut();
+            this.scrollBarFideOut();
         }).bind(this)
 
         // touch event
@@ -223,30 +220,30 @@ class Scroll {
             }
             return true;
         });
-	}
+    }
 
     /**
     * @private
     */
-	scroll () {}
+    scroll () {}
 
     /**
     * @private
     */
-	scrollBarFideIn () {}
+    scrollBarFideIn () {}
 
     /**
     * @private
     */
-	scrollBarFideOut () {}
+    scrollBarFideOut () {}
 
     /**
     * @private
     */
-	getMaxHeight() {
+    getMaxHeight() {
 
-		return this.max;
-	}
+        return this.max;
+    }
 
     /**
     * @private

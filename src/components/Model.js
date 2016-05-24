@@ -6,35 +6,35 @@ import _ from 'lodash';
 */
 class Model {
 
-	/**
-	* @private
-	*/
-	constructor(model) {
+    /**
+    * @private
+    */
+    constructor(model) {
 
-		this.m = model || {};
-	}
+        this.m = model || {};
+    }
 
-	/**
-	* @private
-	*/
-	set (m) {
+    /**
+    * @private
+    */
+    set (m) {
 
-		!_.isEqual(m, this.m) && (this.observe(m, this.m), this.m = _.assign(m));
-	}
+        !_.isEqual(m, this.m) && (this.observe(m, this.m), this.m = _.assign(m));
+    }
 
-	/**
-	* @private
-	*/
-	get () {
+    /**
+    * @private
+    */
+    get () {
 
-		return this.m;
-	}
+        return this.m;
+    }
 
-	/**
-	* @private
-	*/
-	observe (is, was) {
-	}
+    /**
+    * @private
+    */
+    observe (is, was) {
+    }
 };
 
 export default Model;

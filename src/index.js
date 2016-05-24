@@ -10,17 +10,16 @@ import platform from './components/platform';
 import dom from './components/dom';
 import iList from './components/iList';
 
-
 export default {
-	Atom,
-	Component,
-	Collection,
-	DataTreeManager,
-	itemTreeStateStorage,
-	Model,
-	ScrollControl,
-	xhr,
-	platform,
-	dom,
-	iList
+    Atom,
+    Component,
+    Collection,
+    DataTreeManager,
+    itemTreeStateStorage,
+    Model,
+    ScrollControl,
+    xhr,
+    platform,
+    dom,
+    iList
 };
