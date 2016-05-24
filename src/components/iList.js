@@ -5,230 +5,232 @@ import dom from './dom';
 
 class iList extends VDataRepeater {
 
-	constructor(params) {
+    constructor(params) {
+        super(_.merge({
+            template:`
+                <div class="infinitelist" on-click="selectItemEvent(event)">
+                      <components></components>
+                        <div id="sliderBar" on-mouseover="mover(event)"
+                                        on-mouseout="mout(event)"
+                                        on-mousemove="mmove(event)">
+                        <div id="startArrow" on-click="pgShift('Up')"></div>
+                        <div id="endArrow" on-click="pgShift('Down')"></div>
+                        <div id="slider" on-mousedown="mDown(event)" style="height: {{sliderWidthPx}}px;"></div>
+                    </div>
+                </div>`,
+            data: {
+                eventClickSelect: true
+            },
 
-		super(_.merge({
-			template:`
-				<div class="infinitelist" on-click="selectItem(event)">
-		  			<components></components>
-						<div id="sliderBar" on-mouseover="mover(event)"
-										on-mouseout="mout(event)"
-										on-mousemove="mmove(event)">
-						<div id="startArrow" on-click="pgShift('Up')"></div>
-						<div id="endArrow" on-click="pgShift('Down')"></div>
-						<div id="slider" on-mousedown="mDown(event)" style="height: {{sliderWidthPx}}px;"></div>
-					</div>
-				</div>`,
+            sliderTop: 0,
+            unVisibleItems: 3,
+            selected: {},
 
-			sliderTop: 0,
-			unVisibleItems: 3,
-			selected: {},
+            on: {
 
-			on: {
+                "selectItemEvent": (e) => {
 
-				"selectItem": (e) => {
+                    if (this.data.eventClickSelect !== false) {
+                        let item = antipode.in(e.srcElement);
+                        if (item.name == 'item') {
+                            this.selectItem(item);
+                        }
+                    }
+                },
 
-					let item = antipode.in(e.srcElement), id;
-					if (item.name == 'item') {
-						id = item.get('model.id');
+                "pgShift": (dir) => {
 
-						console.log('item, id, this.Selector.get(id) = ', item, item.get(), this.Selector.get(id))
-						if (this.Selector.get(id)) {
-							this.Selector.set(id, false);
-							dom.removeClass(item.$element, this.Selector.selectedClass);
-						} else {
-							this.Selector.set(id, true);
-							dom.addClass(item.$element, this.Selector.selectedClass);
+                    dir == 'Up' ? this.pgUp() : this.pgDown();
+                },
 
-						}
-					}
+                "mout": (e) => {
 
-				},
+                    dom.setStyle(this.startArrow, {
+                        display: 'none'
+                    });
+                    dom.setStyle(this.endArrow, {
+                        display: 'none'
+                    });
+                },
 
-				"pgShift": (dir) => {
+                "mover": (e) => {
 
-					dir == 'Up' ? this.pgUp() : this.pgDown();
-				},
+                    if (this.slider !== e.srcElement) {
+                        if (Math.min(e.pageY, e.offsetY) < this.sliderTop) {
+                            dom.setStyle(this.startArrow, {
+                                display: 'block',
+                                height: this.sliderTop + 'px'
+                            });
+                        } else if (e.pageY > this.sliderTop + this.data.sliderWidthPx) {
+                            dom.setStyle(this.endArrow, {
+                                display: 'block',
+                                height: '100%',
+                                top: this.sliderTop + this.data.sliderWidthPx + 'px'
+                            });
+                        }
+                    }
+                },
 
-				"mout": (e) => {
+                mDown (e) {
+                    this.startOffset =   e.clientY - this.sliderTop;
+                    document.querySelector('html')
+                        .addEventListener('mouseup', this.scrollEndOfOutSide = scrollEndOfOutSide.bind(this), true);
+                    document.querySelector('html')
+                        .addEventListener('mousemove', this.sliderMove = sliderMove.bind(this), true);
+                }
+            }
+        }, params));
 
-					dom.setStyle(this.startArrow, {
-						display: 'none'
-					});
-					dom.setStyle(this.endArrow, {
-						display: 'none'
-					});
-				},
+        const sliderMove = (e) => {
 
-				"mover": (e) => {
+            let scr = e.clientY - this.startOffset;
 
-					if (this.slider !== e.srcElement) {
-						if (Math.min(e.pageY, e.offsetY) < this.sliderTop) {
-							dom.setStyle(this.startArrow, {
-								display: 'block',
-								height: this.sliderTop + 'px'
-							});
-						} else if (e.pageY > this.sliderTop + this.data.sliderWidthPx) {
-							dom.setStyle(this.endArrow, {
-								display: 'block',
-								height: '100%',
-								top: this.sliderTop + this.data.sliderWidthPx + 'px'
-							});
-						}
-					}
-				},
+            (scr < 0) && (scr = 0);
+            (scr > this.data.sliderWayPx) && (scr = this.data.sliderWayPx);
+            this.Scroller.setScroll(scr / this.data.sliderWayPx * this.data.scrollerWayPx);
 
-				mDown (e) {
-					this.startOffset =   e.clientY - this.sliderTop;
-					document.querySelector('html')
-						.addEventListener('mouseup', this.scrollEndOfOutSide = scrollEndOfOutSide.bind(this), true);
-                	document.querySelector('html')
-						.addEventListener('mousemove', this.sliderMove = sliderMove.bind(this), true);
-				}
-			}
-		}, params));
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
-		const sliderMove = (e) => {
-
-			let scr = e.clientY - this.startOffset;
-
-			(scr < 0) && (scr = 0);
-			(scr > this.data.sliderWayPx) && (scr = this.data.sliderWayPx);
-			this.Scroller.setScroll(scr / this.data.sliderWayPx * this.data.scrollerWayPx);
-
-			e.preventDefault();
-		    e.stopPropagation();
-		}
-
-		const scrollEndOfOutSide = (e) => {
+        const scrollEndOfOutSide = (e) => {
             document.querySelector('html')
                 .removeEventListener('mouseup', this.scrollEndOfOutSide, true);
             document.querySelector('html')
                 .removeEventListener('mousemove', this.sliderMove, true);
         }
 
-		this.Scroller = new ScrollControl(this.$parent);
-    	this.Scroller.scroll = this.scroll.bind(this);
-	}
+        this.Scroller = new ScrollControl(this.$parent);
+        this.Scroller.scroll = this.scroll.bind(this);
+    }
 
-	scroll (offset) {
+    selectItem (item) {
+        const id = item.get('model.id');
+        if (this.Selector.get(id)) {
+            this.Selector.set(id, false);
+            dom.removeClass(item.$element, this.Selector.selectedClass);
+        } else {
+            this.Selector.set(id, true);
+            dom.addClass(item.$element, this.Selector.selectedClass);
 
-		let f = Math.ceil(offset / (this.data.deltaPx));
+        }
+    }
 
-		this.data.scrollPx = offset;
-	    this.set('first', f);
-	    this.positionChildren();
+    scroll (offset) {
 
-	    this.sliderTop = ((offset / (this.Scroller.max)) * this.data.sliderWayPx);
-    	this.slider && (this.slider.style.top = this.sliderTop + 'px');
-	}
+        let f = Math.ceil(offset / (this.data.deltaPx));
 
-	reset () {
+        this.data.scrollPx = offset;
+        this.set('first', f);
+        this.positionChildren();
 
-		this.data.numVisibleItems = this.data.numItems - this.unVisibleItems;
-		this.data.listHeightPx = this.data.numVisibleItems * this.data.deltaPx;
-		this.data.sliderWayPx = this.data.listHeightPx - this.data.sliderWidthPx;
-		this.data.scrollerWayPx = this.data.deltaPx * (this.collection.models.length > this.data.numVisibleItems
-				? this.collection.models.length - this.data.numVisibleItems
-				: 0
-			);
-		this.maxHeight = this.Scroller.getMaxHeight;
-		this.Scroller.max = this.data.scrollerWayPx
-			? (this.collection.models.length - this.data.numItems + this.unVisibleItems) * this.data.deltaPx
-			: 0;
+        this.sliderTop = ((offset / (this.Scroller.max)) * this.data.sliderWayPx);
+        this.slider && (this.slider.style.top = this.sliderTop + 'px');
+    }
 
-		let c = this.collection.models.length;
+    reset () {
 
-		if (this.getComponents().length > c) {
-			this.removeComponent(this.getComponents().slice(c));
-			this.data.scrollPx = this.data.first = 0;
-		}
+        this.data.numVisibleItems = this.data.numItems - this.unVisibleItems;
+        this.data.listHeightPx = this.data.numVisibleItems * this.data.deltaPx;
+        this.data.sliderWayPx = this.data.listHeightPx - this.data.sliderWidthPx;
+        this.data.scrollerWayPx = this.data.deltaPx * (this.collection.models.length > this.data.numVisibleItems
+                ? this.collection.models.length - this.data.numVisibleItems
+                : 0
+            );
+        this.maxHeight = this.Scroller.getMaxHeight;
+        this.Scroller.max = this.data.scrollerWayPx
+            ? (this.collection.models.length - this.data.numItems + this.unVisibleItems) * this.data.deltaPx
+            : 0;
 
-		dom.setStyle(this.sliderBar, {
-			display: this.data.scrollerWayPx
-				? 'block'
-				: 'none'
-		});
+        let c = this.collection.models.length;
 
-		this.setExtend();
-		this.positionChildren();
-	}
+        if (this.getComponents().length > c) {
+            this.removeComponent(this.getComponents().slice(c));
+            this.data.scrollPx = this.data.first = 0;
+        }
 
-	rendered () {
+        dom.setStyle(this.sliderBar, {
+            display: this.data.scrollerWayPx
+                ? 'block'
+                : 'none'
+        });
 
-		super.rendered();
-		this.reset();
-		this.positionChildren();
-	}
+        this.setExtend();
+        this.positionChildren();
+    }
 
-	positionChildren () {
+    rendered () {
 
-	    var oc = this.getComponents() || [],
-	      	i, c, p, fi, li, is;
+        super.rendered();
+        this.reset();
+        this.positionChildren();
+    }
 
-	    for (i = 0; i < oc.length; i++) {
-			c = oc[i];
-			if (!c.set) continue;
-			p = this.getPosition(c.get('_index2'));
-			c.$element.style['transform'] = 'translate3d(0, ' + p + 'px, 0)';
-	    }
-	}
+    positionChildren () {
 
-	getPosition (index, scroll) {
+        var oc = this.getComponents() || [],
+              i, c, p, fi, li, is;
 
-	    return (index * this.data.deltaPx) - this.data.scrollPx;
-	}
+        for (i = 0; i < oc.length; i++) {
+            c = oc[i];
+            if (!c.set) continue;
+            p = this.getPosition(c.get('_index2'));
+            c.$element.style['transform'] = 'translate3d(0, ' + p + 'px, 0)';
+        }
+    }
 
-	setItems () {
+    getPosition (index, scroll) {
 
-		let oc = this.orderedChildren,
-			c = this.getComponents(),
-			comps = c.length,
-			i = 0, p,
-			cnt = oc.length;
+        return (index * this.data.deltaPx) - this.data.scrollPx;
+    }
 
-		for (; i < cnt; ++i) {
-			if (oc[i].n > -2 && oc[i].n < comps - 1) {
-				p = (oc[i].index * this.data.deltaPx) - Math.round(this.data.scrollPx);
-				c[i].set('_index2', oc[i].index);
-				c[i].set('model', oc[i].model);
+    setItems () {
 
-				c[i].$element.innerText = oc[i].index + ') ' + oc[i].model.name;
-				c[i].$element.style['transform'] = 'translate3d(' + '0,' + p + 'px,0)';
-				dom.addRemoveClass(c[i].$element, this.Selector.selectedClass, oc[i].selected);
-			}
-		}
-	}
+        let oc = this.orderedChildren,
+            c = this.getComponents(),
+            comps = c.length,
+            i = 0, p,
+            cnt = oc.length;
 
-	calculatePgUpDownArrows () {
+        for (; i < cnt; ++i) {
+            if (oc[i].n > -2 && oc[i].n < comps - 1) {
+                p = (oc[i].index * this.data.deltaPx) - Math.round(this.data.scrollPx);
+                c[i].set('_index2', oc[i].index);
+                c[i].set('model', oc[i].model);
+                c[i].$element.innerText = oc[i].index + ') ' + oc[i].model.name;
+            }
+        }
+    }
 
-		dom.setStyle(this.startArrow, {
-			height: this.sliderTop + 'px'
-		});
+    calculatePgUpDownArrows () {
 
-		dom.setStyle(this.endArrow, {
-			top: this.sliderTop + this.data.sliderWidthPx + 'px'
-		});
-	}
+        dom.setStyle(this.startArrow, {
+            height: this.sliderTop + 'px'
+        });
 
-	pgUp () {
+        dom.setStyle(this.endArrow, {
+            top: this.sliderTop + this.data.sliderWidthPx + 'px'
+        });
+    }
 
-		this.Scroller.setScroll(this.data.scrollPx - (this.data.numVisibleItems - 1) * this.data.deltaPx);
-		this.calculatePgUpDownArrows();
-	}
+    pgUp () {
 
-	pgDown () {
+        this.Scroller.setScroll(this.data.scrollPx - (this.data.numVisibleItems - 1) * this.data.deltaPx);
+        this.calculatePgUpDownArrows();
+    }
 
-		this.Scroller.setScroll(this.data.scrollPx + (this.data.numVisibleItems - 1) * this.data.deltaPx);
-		this.calculatePgUpDownArrows();
-	}
+    pgDown () {
 
-	gotoRecord (rec) {
+        this.Scroller.setScroll(this.data.scrollPx + (this.data.numVisibleItems - 1) * this.data.deltaPx);
+        this.calculatePgUpDownArrows();
+    }
 
-		let scroll = this.data.deltaPx * rec;
-		this.Scroller.setScroll(scroll);
-		this.scroll (scroll);
-	}
+    gotoRecord (rec) {
+
+        let scroll = this.data.deltaPx * rec;
+        this.Scroller.setScroll(scroll);
+        this.scroll (scroll);
+    }
 
 };
 
