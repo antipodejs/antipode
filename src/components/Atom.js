@@ -16,9 +16,11 @@ class Atom {
 
     checkObservers (d, is, was) {
         let o;
+	    const _this = this;
+
         if (o = this._observers[d]) {
-            o.forEach(function(handler) {
-                handler(was, is);
+            o.forEach((handler) => {
+                handler.apply(_this, [was, is]);
             })
         }
     }
@@ -60,24 +62,30 @@ class Atom {
         const o = this._observers;
 
         changes.forEach((change) => {
-               if (o[change.name]) {
-                   o[change.name].forEach((handler) => {
-                       handler(change.oldValue, this['data'][change.name]);
-                   });
-               }
-           });
+            if (o[change.name]) {
+                o[change.name].forEach((handler) => {
+                    handler(change.oldValue, this['data'][change.name]);
+                });
+            }
+        });
     }
 
     /**
     * @public
     */
-    observe(value, handler) {
+    observe(values, handler) {
 
-        if (typeof (this._observers[value]) == "undefined") {
-            this._observers[value] = [];
-        };
+        if (!_.isArray(values)) {
+            values = [values];
+        }
 
-        this._observers[value].push(handler);
+        values.forEach((value) => {
+            if (typeof (this._observers[value]) == "undefined") {
+                this._observers[value] = [];
+            };
+
+            this._observers[value].push(handler);
+        });
     }
 
     /**
