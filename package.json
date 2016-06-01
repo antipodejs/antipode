@@ -1,6 +1,6 @@
 {
   "name": "antipode",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "description": "A JavaScript application framework, which is based on ES6/7",
   "main": "lib/index.js",
   "scripts": {
