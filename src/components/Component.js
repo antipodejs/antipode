@@ -5,7 +5,7 @@ import Atom from './Atom';
 * Contains the declaration for the {@link Component} class.
 * @module Component
 */
-const _events = ["click", "mousedown", "mouseup", "mousemove", "mouseover", "mouseout"];
+const _events = ["click", "mousedown", "mouseup", "mousemove", "mouseover", "mouseout", "keydown", "keyup"];
 const _events_RE = new RegExp('^on\-(' + _events.join('|') + ')');
 const args = function () {return arguments};
 
@@ -27,7 +27,9 @@ class Component extends Atom {
         );
 
         var e = this.element || this.directive;
-        this.$parent = e && document.querySelector(e);
+        this.$parent = this.$parent || (e && document.querySelector(e));
+
+        this.template = this.template.replace(/[\t\n\r]+/g,'').replace(/\s+/g, ' ');
 
         this._globalUID = (this.name || "noname") + ':' + _Component_serial_number++;
         antipode['_ap_global'][this._globalUID] = this;
@@ -53,6 +55,8 @@ class Component extends Atom {
 
         this.$[nn] = c;
         c.parent = this;
+
+        this.$parent = component.$parent || this.$parent;
 
         if (this.$parent) {
             var e = document.createElement('c'),
@@ -174,7 +178,7 @@ class Component extends Atom {
             myRe = /{{[^\}\}]+\}\}/g,
             myArray = [];
 
-        !_.isArray(t) && (t=[t]);
+        !_.isArray(t) && (t = [t]);
         t = t.slice();
 
         for (var i = 0, cnt = t.length; i < cnt; ++i) {
@@ -295,7 +299,11 @@ class Component extends Atom {
 
         if (this.components && this.components.length) {
             this.components.forEach(function(c) {
-                this.insertComponent(c);
+                this.insertComponent(
+                    _.merge(c, {
+                        $parent: this.$element.parentNode
+                    })
+                );
             }.bind(this))
         };
     }
