@@ -14,8 +14,16 @@ let _Component_serial_number = 0;
 class Component extends Atom {
 
     constructor(params = {}) {
+
+        let classes = ''; 
+
+        if (params.classes) {
+            classes = params.classes;
+            delete params.classes;
+        }
+
         super(
-              _.assignIn({
+              _.merge({
                 template: '',
                 _template: '',
                 _a:[],
@@ -26,7 +34,19 @@ class Component extends Atom {
             }, params || {})
         );
 
-        var e = this.element || this.directive;
+        if (classes) {
+            let classes_present = this.get('classes').split(' ');
+            let classes_add = classes.split(' ');
+            let classes_merge = [];
+            if (classes_present.length > 0) {
+                let rem = _.filter(classes_add, (i) => /^\-/.test(i)).map((i) => i.replace(/^\-/, ''));
+                let add = _.filter(classes_add, (i) => !/^\-/.test(i));
+                let after_rem = _.without.apply(null, [classes_present].concat(rem));
+                this.set('classes', after_rem.concat(add).join(' '));
+            }
+        }
+
+        const e = this.element || this.directive;
         this.$parent = this.$parent || (e && document.querySelector(e));
 
         this.template = this.template.replace(/[\t\n\r]+/g,'').replace(/\s+/g, ' ');
@@ -43,7 +63,7 @@ class Component extends Atom {
     */
     insertComponent (component, target) {
 
-        var c = new component.kind(component),
+        let c = new component.kind(component),
             n = c.name.replace(/_[0-9]+$/, ''),
             nn = n, 
             i = 0;
