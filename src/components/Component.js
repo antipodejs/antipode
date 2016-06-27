@@ -7,7 +7,7 @@ import Atom from './Atom';
 */
 const _events = ["click", "mousedown", "mouseup", "mousemove", "mouseover", "mouseout", "keydown", "keyup"];
 const _events_RE = new RegExp('^on\-(' + _events.join('|') + ')');
-const args = function () {return arguments};
+const args = function () { return arguments };
 
 let _Component_serial_number = 0;
 
@@ -30,6 +30,7 @@ class Component extends Atom {
                 _i:[],
                 element: undefined,
                 directive: undefined,
+                components: [],
                 on: {}
             }, params || {})
         );
@@ -37,7 +38,6 @@ class Component extends Atom {
         if (classes) {
             let classes_present = this.get('classes').split(' ');
             let classes_add = classes.split(' ');
-            let classes_merge = [];
             if (classes_present.length > 0) {
                 let rem = _.filter(classes_add, (i) => /^\-/.test(i)).map((i) => i.replace(/^\-/, ''));
                 let add = _.filter(classes_add, (i) => !/^\-/.test(i));
@@ -55,6 +55,19 @@ class Component extends Atom {
         antipode['_ap_global'][this._globalUID] = this;
         
         this.init();
+
+        /*if (this.components && this.components.length) {
+            const allComponents = this.getComponents();
+            console.log('rendered allComponents = ', allComponents, this.components);
+            this.components.forEach(function(c) {
+                this.insertComponent(
+                    _.merge(c, {
+                        //$parent: this.$element.parentNode
+                    })
+                );
+            }.bind(this))
+        };*/
+
         return this;
     }
 
@@ -67,6 +80,20 @@ class Component extends Atom {
             n = c.name.replace(/_[0-9]+$/, ''),
             nn = n, 
             i = 0;
+
+        console.log('this.components = ', this.components);
+        /*if (this.components.indexOf(component) === -1) {
+            console.log('not found ', component);
+            this.components.push(component);
+            component.$inherit = c;
+        } else {
+            console.log('need re rendering for ', component);
+            if (component.$inherit) {
+                console.log('component.$inherit = ', component.$inherit);
+                component.$inherit.render();
+                return;
+            }
+        }*/
 
         while(this.$[nn]) {
             ++i;
@@ -317,7 +344,9 @@ class Component extends Atom {
     */
     rendered () {
 
-        if (this.components && this.components.length) {
+        /*if (this.components && this.components.length) {
+            const allComponents = this.getComponents();
+            console.log('rendered allComponents = ', allComponents, this.components);
             this.components.forEach(function(c) {
                 this.insertComponent(
                     _.merge(c, {
@@ -325,7 +354,7 @@ class Component extends Atom {
                     })
                 );
             }.bind(this))
-        };
+        };*/
     }
 
     /**
