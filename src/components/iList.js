@@ -193,7 +193,7 @@ class iList extends VDataRepeater {
             cnt = oc.length;
 
         for (; i < cnt; ++i) {
-            if (oc[i].n > -2 && oc[i].n < comps - 1) {
+            if (oc[i].num > -2 && oc[i].num < comps - 1) {
                 p = (oc[i].index * this.data.deltaPx) - Math.round(this.data.scrollPx);
                 c[i].set('_index2', oc[i].index);
                 c[i].set('model', oc[i].model);

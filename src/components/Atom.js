@@ -100,7 +100,6 @@ class Atom {
             this._obserers = [];
         }
     }
-
 }
 
 export default Atom;

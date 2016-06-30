@@ -7,9 +7,22 @@ import Atom from './Atom';
 */
 const _events = ["click", "mousedown", "mouseup", "mousemove", "mouseover", "mouseout", "keydown", "keyup"];
 const _events_RE = new RegExp('^on\-(' + _events.join('|') + ')');
-const args = function () {return arguments};
+const args = function () { return arguments };
 
 let _Component_serial_number = 0;
+
+const argumentNames = (func) => {
+    const names = func.toString().match(/^[\s\(]*function[^(]*\(([^)]*)\)/)[1]
+        .replace(/\/\/.*?[\r\n]|\/\*(?:.|[\r\n])*?\*\//g, '')
+        .replace(/\s+/g, '').split(',');
+    return names.length == 1 && !names[0] ? [] : names;
+};
+
+const innerMethod = document.body.innerText 
+    ? 'innerText' :
+        document.body.textContent
+        ? 'textContent'
+        : 'innerHTML';
 
 class Component extends Atom {
 
@@ -30,6 +43,7 @@ class Component extends Atom {
                 _i:[],
                 element: undefined,
                 directive: undefined,
+                components: [],
                 on: {}
             }, params || {})
         );
@@ -37,7 +51,6 @@ class Component extends Atom {
         if (classes) {
             let classes_present = this.get('classes').split(' ');
             let classes_add = classes.split(' ');
-            let classes_merge = [];
             if (classes_present.length > 0) {
                 let rem = _.filter(classes_add, (i) => /^\-/.test(i)).map((i) => i.replace(/^\-/, ''));
                 let add = _.filter(classes_add, (i) => !/^\-/.test(i));
@@ -49,12 +62,26 @@ class Component extends Atom {
         const e = this.element || this.directive;
         this.$parent = this.$parent || (e && document.querySelector(e));
 
-        this.template = this.template.replace(/[\t\n\r]+/g,'').replace(/\s+/g, ' ');
+        if (!_.isArray(this.template)) {
+            this.template = [this.template];
+        }
+
+        _.each(this.template, (bit, index) => {
+            if (!_.isFunction(bit)) {
+                this.template[index] = bit.replace(/[\t\n\r]+/g,'').replace(/\s+/g, ' ');
+            }
+        });
+
+        if (!this.name) {
+            this.name = 'noname';
+        }
 
         this._globalUID = (this.name || "noname") + ':' + _Component_serial_number++;
         antipode['_ap_global'][this._globalUID] = this;
         
         this.init();
+        this.render();
+
         return this;
     }
 
@@ -68,7 +95,7 @@ class Component extends Atom {
             nn = n, 
             i = 0;
 
-        while(this.$[nn]) {
+        while ( this.$[nn] ) {
             ++i;
             nn = n + '_' + i;
         };
@@ -195,15 +222,29 @@ class Component extends Atom {
         var s = 0, sub, 
             t = this.template, 
             a = this._a = [],
+            f = this._f = {},
             myRe = /{{[^\}\}]+\}\}/g,
-            myArray = [];
+            myArray = [],
+            f_cnt = 0;
 
         !_.isArray(t) && (t = [t]);
         t = t.slice();
 
         for (var i = 0, cnt = t.length; i < cnt; ++i) {
             if (_.isFunction(t[i])) {
-                t[i] = t[i].bind(this)()();
+                const argsNames = argumentNames(t[i]);
+                const fn = t[i];
+                const tmpFunc = '[' + (f_cnt++) + '](' + argsNames + ')';
+
+                f[tmpFunc] = function(data) {
+                    data = data || this.data;
+                    const data_args = argsNames.map((item) => {
+                        return data[item];
+                    });
+                    return fn.apply(this, data_args)
+                }.bind(this);
+
+                t[i] = '{{' + tmpFunc + '}}';
             }
         };
 
@@ -218,29 +259,89 @@ class Component extends Atom {
             }
 
             a.push(myArray[0]);
-            this._i.push({
-                index: a.length - 1, 
-                pattern: myArray[0].replace(/\{\{|\}\}/g, '')
-            });
 
+            let patt = myArray[0],
+                refValue = myArray[0].replace(/\{\{|\}\}/g, ''),
+                isFunction = /^\[[0-9]+\]/.test(refValue);
+
+            let spotValue = {
+                index: a.length - 1, 
+                pattern: refValue,
+                isFunction
+            };
+
+            if (isFunction) {
+                let params = refValue.match(/\((.*)\)/);
+                if (params) {
+                    spotValue.params = params[1].split(',');
+                }
+            }
+
+            this._i.push(spotValue);
             s = myRe.lastIndex; 
         };
 
         if (s < t.length - 1) {
-            a.push(t.slice(s, t.length - 1)); 
+            a.push(t.slice(s, t.length)); 
         }
+    }
+
+    getHtml () {
+        return this._a.join('');
+    }
+
+    setValues () {
+        this._i.forEach((item) => {
+            if (/^\[[0-9]+\]/.test(item.pattern)) {
+                this._a[item.index] = '<ap-data name="' + item.pattern + '">' + this._f[item.pattern](this.data) + '</ap-data>';
+            } else {
+                this._a[item.index] = '<ap-data name="' + item.pattern + '">' + this.get(item.pattern) + '</ap-data>';
+            }
+        });
+    }
+
+    dataUpdate (data) {
+        const keys = Object.keys(data);
+        keys.forEach((key) => {
+            this.data[key] = data[key]
+        });
+        this.updateValues(keys);
+    }
+
+    updateValues (vals) {
+        vals = vals || Object.keys(this.data);
+        _.each(this._i, (spot) => {
+            if (spot.isFunction) {
+                if (_.intersection(spot.params, vals).length > 0) {
+                    this.dataLink[spot.pattern].innerHTML = this._f[spot.pattern]();
+                }
+            } else if (vals.indexOf(spot.pattern) > -1) {
+                this.dataLink[spot.pattern][innerMethod] = this.data[spot.pattern];
+            }
+        });
+    }
+
+    makeDataLink () {
+        const 
+            d = this.data,
+            e = this.$element.parentNode,
+            n = this._i.map((val) => val.pattern);
+
+        this.dataLink = {};
+        n.forEach((value) => {
+            let el = e.querySelector('ap-data[name="' + value + '"]');
+            if (el) {
+                this.dataLink[value] = el;
+            }
+        });
     }
 
     /**
     * @public
     */
     render () {
-
         let inner, e;
-
-        this._i.forEach(function(item) {
-            this._a[item.index] = this.get(item.pattern);
-        }.bind(this));
+        this.setValues();
         
         if (this.element) {
             e = (typeof (this.element) == 'string') 
@@ -293,10 +394,10 @@ class Component extends Atom {
         }
 
         if (e) {
-            inner = this._a.join('');
-            e.innerHTML = inner;
+            e.innerHTML = this.getHtml();
             this.$element = e.children[0];
             e.setAttribute("ap-component", this._globalUID);
+            this.makeDataLink();
             readAttrs(e);
             this.rendered();
         }
@@ -316,8 +417,8 @@ class Component extends Atom {
     * @private
     */
     rendered () {
-
         if (this.components && this.components.length) {
+            const allComponents = this.getComponents();
             this.components.forEach(function(c) {
                 this.insertComponent(
                     _.merge(c, {
@@ -326,58 +427,6 @@ class Component extends Atom {
                 );
             }.bind(this))
         };
-    }
-
-    /**
-    * @private
-    */
-    j (str) {
-    
-        let _stat = str.match(/^(.*) in (.*)$/),
-            iterator = _stat[1],
-            ar = eval(_stat[2]),
-            i = 0;
-
-        return {
-            reset: function() {
-                i = 0; 
-                return ar[i]
-            }, 
-            next: function() {
-                ++i; 
-                return (i < ar.length - 1) ? ar[i] : null;
-            },
-            hasNext: function() {
-                return i < ar.length - 1;
-            }
-        }
-    }
-
-    /**
-    * @private
-    */
-    _for (it, o, t) {
-
-        return function() {
-
-            var r = [], arr = this.get(o);
-
-            !_.isArray(t) && (t = [t]);
-
-            for (var i = 0, cnt = arr.length; i < cnt; ++i) {
-                t.forEach(function(item) {
-                    if (_.isFunction(item)) {
-                        throw new Error('sub loop!! Right now it is not works.');
-                    }
-                });
-                
-                var j = this.parse(t.join(''), i, it);
-                r.push(j.render());
-            }
-
-            return r.join('');
-            
-        }.bind(this)
     }
 }
 
