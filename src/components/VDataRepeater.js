@@ -47,24 +47,14 @@ class VDRepeater extends Component {
         let cnt;
         if (this.collection && this.repeaterComponents) {
             cnt = Math.min(this.collection.models.length, this.data.numItems - 2);
-            console.log('add Components cnt = ', cnt);
             while (cnt--) {
-                this.insertComponent(this.repeaterComponents);
+                this.insertComponent(this.repeaterComponents/*, this.element*/);
             }
         }
         
         return cnt;
     }
 
-    rendered() {
-
-        super.rendered();
-        this.fillComponents() && this.doIt();
-        this.slider = this.$element.querySelector('#slider');
-        this.sliderBar = this.$element.querySelector('#sliderBar');
-        this.startArrow = this.$element.querySelector('#startArrow');
-        this.endArrow = this.$element.querySelector('#endArrow');
-    }
 
     setExtend () {
         // First - need check amounts elements on screen
@@ -75,7 +65,6 @@ class VDRepeater extends Component {
     }
 
     doIt () {
-
         var dd = this.collection,
             ddl = dd.models.length,
             f = this.data.first,

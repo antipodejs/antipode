@@ -19,8 +19,8 @@ const argumentNames = (func) => {
 };
 
 const innerMethod = document.body.innerText 
-    ? 'innerText' :
-        document.body.textContent
+    ? 'innerText' 
+    : document.body.textContent
         ? 'textContent'
         : 'innerHTML';
 
@@ -28,39 +28,20 @@ class Component extends Atom {
 
     constructor(params = {}) {
 
-        let classes = ''; 
-
-        if (params.classes) {
-            classes = params.classes;
-            delete params.classes;
-        }
-
         super(
               _.merge({
                 template: '',
                 _template: '',
                 _a:[],
                 _i:[],
+                tag: 'div',
+                classes: '',
                 element: undefined,
-                directive: undefined,
+                parent: null,
                 components: [],
                 on: {}
             }, params || {})
         );
-
-        if (classes) {
-            let classes_present = this.get('classes').split(' ');
-            let classes_add = classes.split(' ');
-            if (classes_present.length > 0) {
-                let rem = _.filter(classes_add, (i) => /^\-/.test(i)).map((i) => i.replace(/^\-/, ''));
-                let add = _.filter(classes_add, (i) => !/^\-/.test(i));
-                let after_rem = _.without.apply(null, [classes_present].concat(rem));
-                this.set('classes', after_rem.concat(add).join(' '));
-            }
-        }
-
-        const e = this.element || this.directive;
-        this.$parent = this.$parent || (e && document.querySelector(e));
 
         if (!_.isArray(this.template)) {
             this.template = [this.template];
@@ -78,6 +59,16 @@ class Component extends Atom {
 
         this._globalUID = (this.name || "noname") + ':' + _Component_serial_number++;
         antipode['_ap_global'][this._globalUID] = this;
+
+        this.element = typeof this.element === 'string' 
+            ? (this.$parent || document).querySelector(this.element) 
+            : this.element;
+
+        this.element.setAttribute("ap-component", this._globalUID);
+        
+        if (this.classes) {
+            this.element.className = this.classes;
+        }
         
         this.init();
         this.render();
@@ -89,6 +80,21 @@ class Component extends Atom {
     * @private
     */
     insertComponent (component, target) {
+
+        if (typeof(component.kind) === "undefined") {
+            component.kind = Component;
+        }
+
+        let componentInsertionPoint = target || this.element.querySelector('components');
+
+        if (!componentInsertionPoint) {
+            componentInsertionPoint = this.element.appendChild(
+                document.createElement('components')
+            );
+        }
+
+        let e = document.createElement(component.tag || this.tag);
+        component.element = e;
 
         let c = new component.kind(component),
             n = c.name.replace(/_[0-9]+$/, ''),
@@ -103,26 +109,9 @@ class Component extends Atom {
         this.$[nn] = c;
         c.parent = this;
 
-        this.$parent = component.$parent || this.$parent;
-
-        if (this.$parent) {
-            var e = document.createElement('c'),
-                componentSection = this.$parent.querySelector('components');
-
-            if (!componentSection) {
-                componentSection = this.$parent.children[0].appendChild(
-                    document.createElement('components')
-                );
-            }
-
-            target 
-                ? target.appendChild(e) 
-                : componentSection.appendChild(e);
-
-            c.init();
-            c.element = e;
-            c.render();
-        }
+        componentInsertionPoint.appendChild(e);
+        c.init();
+        c.render();
     }
 
     /**
@@ -138,7 +127,7 @@ class Component extends Atom {
 
         for (let e in this.$) {
             if (~components.indexOf(this.$[e])) {
-                p = this.$[e].$element.parentNode;
+                p = this.$[e].element.parentNode;
                 if (this.isComponent(p)) {
                     p.parentNode.removeChild(p);
                 }
@@ -293,9 +282,9 @@ class Component extends Atom {
     setValues () {
         this._i.forEach((item) => {
             if (/^\[[0-9]+\]/.test(item.pattern)) {
-                this._a[item.index] = '<ap-data name="' + item.pattern + '">' + this._f[item.pattern](this.data) + '</ap-data>';
+                this._a[item.index] = '<ap-data data-ap-source="' + item.pattern + '">' + this._f[item.pattern](this.data) + '</ap-data>';
             } else {
-                this._a[item.index] = '<ap-data name="' + item.pattern + '">' + this.get(item.pattern) + '</ap-data>';
+                this._a[item.index] = '<ap-data data-ap-source="' + item.pattern + '">' + this.get(item.pattern) + '</ap-data>';
             }
         });
     }
@@ -324,12 +313,12 @@ class Component extends Atom {
     makeDataLink () {
         const 
             d = this.data,
-            e = this.$element.parentNode,
+            e = this.element,
             n = this._i.map((val) => val.pattern);
 
         this.dataLink = {};
         n.forEach((value) => {
-            let el = e.querySelector('ap-data[name="' + value + '"]');
+            let el = e.querySelector('ap-data[data-ap-source="' + value + '"]');
             if (el) {
                 this.dataLink[value] = el;
             }
@@ -340,17 +329,10 @@ class Component extends Atom {
     * @public
     */
     render () {
-        let inner, e;
+        let inner;
         this.setValues();
-        
-        if (this.element) {
-            e = (typeof (this.element) == 'string') 
-                ? document.querySelector(this.element) 
-                : this.element;
-        } 
-        else if (this.directive) {
-            e = document.querySelector(this.directive);
-        }
+
+        const e = this.element;
 
         const  readAttrs = (node) => {
 
@@ -395,38 +377,34 @@ class Component extends Atom {
 
         if (e) {
             e.innerHTML = this.getHtml();
-            this.$element = e.children[0];
-            e.setAttribute("ap-component", this._globalUID);
             this.makeDataLink();
             readAttrs(e);
+
+            if (this.components && this.components.length) {
+                const allComponents = this.getComponents();
+                this.components.forEach(function(c) {
+                    this.insertComponent(
+                        _.merge(c, {
+                            element: this.element
+                        })
+                    );
+                }.bind(this))
+            };
+
             this.rendered();
         }
 
         return this;
     }
 
+    rendered () {}
+
     hasNode () {
-        return !!this.$element;
+        return !!this.element;
     }
 
     isComponent (c) {
         return !!c.getAttributeNode('ap-component');
-    }
-
-    /**
-    * @private
-    */
-    rendered () {
-        if (this.components && this.components.length) {
-            const allComponents = this.getComponents();
-            this.components.forEach(function(c) {
-                this.insertComponent(
-                    _.merge(c, {
-                        $parent: this.$element.parentNode
-                    })
-                );
-            }.bind(this))
-        };
     }
 }
 
