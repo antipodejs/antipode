@@ -20,20 +20,6 @@
 	background-color: #707676;
 }
 
-.infinitelist > #sliderBar > #startArrow, #endArrow {
-	position: ablolute;
-	background: #646A6A;
-	top: 0;
-	height: 20px;
-	width: 5px;
-	cursor: default;
-	display: none;
-}
-
-.infinitelist > #sliderBar > #endArrow {
-	bottom: 0;  
-}
-
 .infinitelist > #sliderBar > #slider {
 	position: absolute;
 	top: 0;

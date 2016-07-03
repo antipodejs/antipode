@@ -18,9 +18,9 @@ const argumentNames = (func) => {
     return names.length == 1 && !names[0] ? [] : names;
 };
 
-const innerMethod = document.body.innerText 
+const innerMethod = typeof(document.body.innerText) !== "undefined" 
     ? 'innerText' 
-    : document.body.textContent
+    : typeof(document.body.textContent) !== "undefined"
         ? 'textContent'
         : 'innerHTML';
 
@@ -66,10 +66,6 @@ class Component extends Atom {
 
         this.element.setAttribute("ap-component", this._globalUID);
         
-        if (this.classes) {
-            this.element.className = this.classes;
-        }
-        
         this.init();
         this.render();
 
@@ -108,10 +104,8 @@ class Component extends Atom {
 
         this.$[nn] = c;
         c.parent = this;
-
         componentInsertionPoint.appendChild(e);
         c.init();
-        c.render();
     }
 
     /**
@@ -381,7 +375,6 @@ class Component extends Atom {
             readAttrs(e);
 
             if (this.components && this.components.length) {
-                const allComponents = this.getComponents();
                 this.components.forEach(function(c) {
                     this.insertComponent(
                         _.merge(c, {
@@ -391,7 +384,7 @@ class Component extends Atom {
                 }.bind(this))
             };
 
-            this.rendered();
+            setTimeout(() => this.rendered(), 0);
         }
 
         return this;

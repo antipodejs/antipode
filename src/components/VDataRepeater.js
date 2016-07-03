@@ -46,9 +46,9 @@ class VDRepeater extends Component {
 
         let cnt;
         if (this.collection && this.repeaterComponents) {
-            cnt = Math.min(this.collection.models.length, this.data.numItems - 2);
+            cnt = Math.min(this.collection.models.length, this.data.numItems - 2); // todo: need to invest..
             while (cnt--) {
-                this.insertComponent(this.repeaterComponents/*, this.element*/);
+                this.insertComponent(this.repeaterComponents);
             }
         }
         

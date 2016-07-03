@@ -1,5 +1,6 @@
 import VDataRepeater from './VDataRepeater';
 import ScrollControl from './ScrollControl';
+import ScrollBar from './ScrollBar';
 import Collection from './Collection'
 import istyle from './iList.css';
 import dom from './dom';
@@ -10,12 +11,9 @@ class iList extends VDataRepeater {
             template:`
                 <div class="infinitelist" on-click="selectItemEvent(event)">
                     <components></components>
-                    <div id="sliderBar">
-                        <div id="startArrow" on-click="pgShift('Up')"></div>
-                        <div id="endArrow" on-click="pgShift('Down')"></div>
-                        <div id="slider" on-mousedown="mDown(event)" style="height: {{sliderWidthPx}}px;"></div>
-                    </div>
-                </div>`,
+                     <div id="scrollBar"></div>
+                </div>
+               `,
             data: {
                 eventClickSelect: true
             },
@@ -27,84 +25,18 @@ class iList extends VDataRepeater {
             on: {
 
                 "selectItemEvent": (e) => {
-
                     if (this.data.eventClickSelect !== false) {
-                        let item = antipode.in(e.srcElement);
+                        let item = antipode.in(e.srcElement); // todo
                         if (item.name == 'item') {
                             this.selectItem(item);
                         }
                     }
-                },
-
-                "pgShift": (dir) => {
-
-                    dir == 'Up' ? this.pgUp() : this.pgDown();
-                },
-
-                "mout": (e) => {
-
-                    dom.setStyle(this.startArrow, {
-                        display: 'none'
-                    });
-                    dom.setStyle(this.endArrow, {
-                        display: 'none'
-                    });
-                },
-
-                "mover": (e) => {
-
-                    if (this.slider !== e.srcElement) {
-                        if (Math.min(e.pageY, e.offsetY) < this.sliderTop) {
-                            dom.setStyle(this.startArrow, {
-                                display: 'block',
-                                height: this.sliderTop + 'px'
-                            });
-                        } else if (e.pageY > this.sliderTop + this.data.sliderWidthPx) {
-                            dom.setStyle(this.endArrow, {
-                                display: 'block',
-                                height: '100%',
-                                top: this.sliderTop + this.data.sliderWidthPx + 'px'
-                            });
-                        }
-                    }
-                },
-
-                mDown (e) {
-                    this.startOffset =   e.clientY - this.sliderTop;
-                    document.querySelector('html')
-                        .addEventListener('mouseup', this.scrollEndOfOutSide = scrollEndOfOutSide.bind(this), true);
-                    document.querySelector('html')
-                        .addEventListener('mousemove', this.sliderMove = sliderMove.bind(this), true);
                 }
             }
         }, params));
 
         if (!this.collection) {
             this.collection = new Collection();
-            this.collection.initial([
-                {id: 0, _uid: 0, name: 'dddd'},
-                {id: 1, _uid: 1, name: 'sasds'},
-                {id: 2, _uid: 2, name: 'dfasdfd'}
-            ]);
-        }
-
-        const sliderMove = (e) => {
-
-            let scr = e.clientY - this.startOffset;
-
-            (scr < 0) && (scr = 0);
-            (scr > this.data.sliderWayPx) && (scr = this.data.sliderWayPx);
-            this.Scroller.setScroll(scr / this.data.sliderWayPx * this.data.scrollerWayPx);
-
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        const scrollEndOfOutSide = (e) => {
-            document.querySelector('html')
-                .removeEventListener('mouseup', this.scrollEndOfOutSide, true);
-            document.querySelector('html')
-                .removeEventListener('mousemove', this.sliderMove, true);
         }
 
         this.Scroller = new ScrollControl(this.element);  // todo! chack it part!
@@ -119,7 +51,6 @@ class iList extends VDataRepeater {
         } else {
             this.Selector.set(id, true);
             dom.addClass(item.$element, this.Selector.selectedClass);
-
         }
     }
 
@@ -130,20 +61,13 @@ class iList extends VDataRepeater {
         this.data.scrollPx = offset;
         this.set('first', f);
         this.positionChildren();
-
-        this.sliderTop = ((offset / (this.Scroller.max)) * this.data.sliderWayPx);
-        this.slider && (this.slider.style.top = this.sliderTop + 'px');
+        this.ScrollBar.scrollTo(offset);
     }
 
     reset () {
 
         this.data.numVisibleItems = this.data.numItems - this.unVisibleItems;
         this.data.listHeightPx = this.data.numVisibleItems * this.data.deltaPx;
-        this.data.sliderWayPx = this.data.listHeightPx - this.data.sliderWidthPx;
-        this.data.scrollerWayPx = this.data.deltaPx * (this.collection.models.length > this.data.numVisibleItems
-                ? this.collection.models.length - this.data.numVisibleItems
-                : 0
-            );
         this.maxHeight = this.Scroller.getMaxHeight;
         this.Scroller.max = this.data.scrollerWayPx
             ? (this.collection.models.length - this.data.numItems + this.unVisibleItems) * this.data.deltaPx
@@ -168,11 +92,14 @@ class iList extends VDataRepeater {
 
     rendered() {
         super.rendered();
+        this.ScrollBar = new ScrollBar({
+            element: this.element.querySelector('#scrollBar'),
+            scrollerLength: (this.collection.models.length - 8) * this.data.deltaPx,
+            eventScroll: (position) => {
+                this.scroll(position);
+            }
+        });
         this.fillComponents() && this.doIt();
-        this.slider = this.element.querySelector('#slider');
-        this.sliderBar = this.element.querySelector('#sliderBar');
-        this.startArrow = this.element.querySelector('#startArrow');
-        this.endArrow = this.element.querySelector('#endArrow');
     }
 
     positionChildren () {
@@ -184,7 +111,7 @@ class iList extends VDataRepeater {
             c = oc[i];
             if (!c.set) continue;
             p = this.getPosition(c.get('_index2'));
-            c.$element.style['transform'] = 'translate3d(0, ' + p + 'px, 0)';
+            c.element.style['transform'] = 'translate3d(0, ' + p + 'px, 0)';
         }
     }
 
@@ -205,32 +132,13 @@ class iList extends VDataRepeater {
                 p = (oc[i].index * this.data.deltaPx) - Math.round(this.data.scrollPx);
                 c[i].set('_index2', oc[i].index);
                 c[i].set('model', oc[i].model);
-                c[i].element.innerText = oc[i].index + ') ' + oc[i].model.name;
+                c[i].updateValues();
+
+                c[i].$.flag.dataUpdate({
+                    flag: oc[i].model.id
+                });
             }
         }
-    }
-
-    calculatePgUpDownArrows () {
-
-        dom.setStyle(this.startArrow, {
-            height: this.sliderTop + 'px'
-        });
-
-        dom.setStyle(this.endArrow, {
-            top: this.sliderTop + this.data.sliderWidthPx + 'px'
-        });
-    }
-
-    pgUp () {
-
-        this.Scroller.setScroll(this.data.scrollPx - (this.data.numVisibleItems - 1) * this.data.deltaPx);
-        this.calculatePgUpDownArrows();
-    }
-
-    pgDown () {
-
-        this.Scroller.setScroll(this.data.scrollPx + (this.data.numVisibleItems - 1) * this.data.deltaPx);
-        this.calculatePgUpDownArrows();
     }
 
     gotoRecord (rec) {
