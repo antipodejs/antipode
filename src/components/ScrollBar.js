@@ -107,7 +107,6 @@ class ScrollBar extends Component {
         });
 
         this.observe('scrollerPosition', (was, is) => {
-            console.log('scrollerPosition ====>>>> ', is);
             this.eventScroll(is);
         });
 

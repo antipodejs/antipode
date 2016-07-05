@@ -24,18 +24,8 @@ class Scroll {
             _scroll(s);
         }
 
-        /**
-        * @private
-        */
-        const ypos = (e) => {
-
-            // touch event
-            if (e.targetTouches && (e.targetTouches.length >= 1)) {
-                return e.targetTouches[0].clientY;
-            }
-
-            // mouse event
-            return e.clientY;
+        this.scrollTo = (y, animate) => {
+            scrollTo(y, animate);
         }
 
         /**
@@ -99,13 +89,34 @@ class Scroll {
             }
         }
 
+        const scrollTo = (y, animate) => {
+
+            let maxAnimateDelta = 1000;
+
+            if (animate) {
+                if (y - offset > maxAnimateDelta) {
+                    offset = y - maxAnimateDelta;
+                } else if (offset - y > maxAnimateDelta) {
+                    offset = y + maxAnimateDelta;
+                }
+
+                amplitude = y - offset;
+                target = y;
+                timestamp = Date.now();
+                requestAnimationFrame(autoScroll);
+            } else {
+                amplitude = 0;
+                _scroll(y);
+            }
+        }
+
         /**
         * @private
         */
         const tap = (e) => {
 
             pressed = true;
-            reference = ypos(e);
+            reference = e.clientY;
             velocity = amplitude = 0;
             frame = offset;
             timestamp = Date.now();
@@ -124,12 +135,11 @@ class Scroll {
         */
         const drag = (e) => {
 
-            let y, delta;
+            let delta;
             if (pressed) {
-                y = ypos(e);
-                delta = reference - y;
+                delta = reference - e.clientY;
                 if (delta > 0.1 || delta < -0.1) {
-                    reference = y;
+                    reference = e.clientY;
                     _scroll(offset + delta);
                 }
             }

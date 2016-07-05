@@ -121,10 +121,8 @@ class Component extends Atom {
 
         for (let e in this.$) {
             if (~components.indexOf(this.$[e])) {
-                p = this.$[e].element.parentNode;
-                if (this.isComponent(p)) {
-                    p.parentNode.removeChild(p);
-                }
+                p = this.$[e].element;
+                p.parentNode.removeChild(p);
                 delete this.$[e];
             }
         }
