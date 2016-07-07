@@ -20,7 +20,7 @@ class ScrollBar extends Component {
                     sliderLengthPx: 40,
                     sliderPosition: 0,
                     sliderBarLength: undefined,
-                    scrollerLength: params.scrollerLength || 3000,
+                    scrollerLength: params.scrollerLength || 760,
                     scrollerPosition: 0
                 },
 
@@ -143,6 +143,11 @@ class ScrollBar extends Component {
         this.set('sliderPosition', sliderPosition);
     }
 
+    setScrollerLength (length) {
+        this.set('scrollerLength', length);
+        this.refresh();
+    }
+
     refresh () {
          
         this.unitMeasure = this.get('orientation') === 'vertical' ? 'height' : 'width';
@@ -152,7 +157,8 @@ class ScrollBar extends Component {
             prevBtLength = parseFloat( dom.getStyle(this.element.querySelector('#prevButton'), this.unitMeasure) ),
             nextBtLength = parseFloat( dom.getStyle(this.element.querySelector('#nextButton'), this.unitMeasure) ),
             totalLength = parseFloat( dom.getStyle(this.element, 'height') ),
-            sliderLength = this.get('sliderLengthPx');
+            sliderLength = this.get('sliderLengthPx'),
+            scrollerLength = this.get('scrollerLength');
 
         this.sliderTrackLength = totalLength - prevBtLength - nextBtLength;
 
@@ -163,10 +169,14 @@ class ScrollBar extends Component {
 
         measure = { };
         measure[this.unitMeasure] = sliderLength + 'px';
-        dom.setStyle(this.slider, measure);
+        dom.setStyle(this.element.querySelector('#slider'), measure);
 
         this.trackLength = dom.getStyle(this.element, 'height');
         this.sliderTrevelRange = this.sliderTrackLength - sliderLength;
+
+        dom.setStyle(this.element, {
+            visibility: (scrollerLength < this.sliderTrevelRange) ? 'hidden' : 'visible'
+        });
     }
 
     rendered () {

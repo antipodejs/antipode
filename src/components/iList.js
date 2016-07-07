@@ -56,7 +56,7 @@ class iList extends VDataRepeater {
 
     scroll (offset) {
 
-        let f = Math.ceil(offset / (this.data.deltaPx));
+        let f = Math.floor(offset / (this.data.deltaPx));
 
         this.data.scrollPx = offset;
         this.set('first', f);
@@ -94,7 +94,7 @@ class iList extends VDataRepeater {
         super.rendered();
         this.ScrollBar = new ScrollBar({
             element: this.element.querySelector('#scrollBar'),
-            scrollerLength: (this.collection.models.length - 8) * this.data.deltaPx,
+            //scrollerLength: (this.collection.models.length - 8) * this.data.deltaPx,
             eventScroll: (position) => {
                 this.scroll(position);
             }
